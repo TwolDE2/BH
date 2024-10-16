@@ -40,6 +40,8 @@ class VolumeControl:
 		self.hideVolTimer = eTimer()
 		self.hideVolTimer.callback.append(self.volHide)
 
+		self.stepVolTimer = eTimer()
+
 	def openDialogs(self):
 		self.volumeDialog = self.session.instantiateDialog(Volume)
 		self.volumeDialog.setAnimationMode(0)
@@ -86,12 +88,10 @@ class VolumeControl:
 
 	def volHide(self):
 		self.volumeDialog.hide()
-		#//set volume on if muted and volume is changed in webif
-		vol = self.volctrl.getVolume()
+		vol = self.volctrl.getVolume()  # set volume on if muted and volume is changed in webif
 		if self.volctrl.isMuted() and self.last_vol != vol:
 			self.volctrl.volumeUnMute()
 		self.last_vol = vol
-		#//
 		if not self.volctrl.isMuted() or config.av.volume_hide_mute.value:
 			self.muteDialog.hide()
 
@@ -114,3 +114,12 @@ class VolumeControl:
 				self.volumeDialog.setValue(vol)
 				self.volumeDialog.show()
 				self.hideVolTimer.start(3000, True)
+
+	def stepVolume(self):
+		if self.stepVolTimer.isActive():
+			step = config.av.volume_stepsize_fastmode.value
+		else:
+			self.getInputConfig()
+			step = config.av.volume_stepsize.value
+		self.stepVolTimer.start(self.repeat, True)
+		return step

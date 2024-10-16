@@ -23,7 +23,6 @@
 		<item level="2" text="Include ECM in http streams" description="ECM data will be included in the stream. This enables a client receiver to decode it.">config.streaming.stream_ecm</item>
 		<item level="2" text="Descramble sending http streams" description="When enabled, http streams are descrambled on the server side. The (remote) client receiver does not have to do descrambling.">config.streaming.descramble</item>
 		<item level="2" text="Descramble receiving http streams" description="When enabled, always descramble receiving http streams. This takes up more resources (descrambling demuxers), only enable if necessary. Individual streams are always descrambled if 0x100 is added to the service type, regardless of this setting.">config.streaming.descramble_client</item>
-		<item level="2" text="Use non blocking CA device access" description="When enabled, the CA device is not blocked when accessed.">config.misc.use_nonblock_io</item>
 		<item level="2" text="Require authentication for http streams" description="When enabled, authentication is required to watch http streams.">config.streaming.authentication</item>
 		<item level="2" text="Http(s) stream start delay" description="Define additional delay in milliseconds before start of http(s) streams, e.g. to connect a remote tuner, you use a complex system of DiSEqC.">config.usage.http_startdelay</item>
 		<item level="2" text="Wake On LAN" description="When enabled the set top box is able to wakeup on LAN" requires="WakeOnLAN">config.usage.wakeOnLAN</item>
@@ -143,10 +142,8 @@
 		<item level="0" text="QuickEPG mode" description="Select how to activate the Quick EPG mode:">config.obhsettings.InfoBarEpg_mode</item>
 		<item level="0" text="TV button mode" description="Select what you want the TV button to activate:">config.usage.tvradiobutton_mode</item>
 		<item level="1" text="History buttons mode" description="Configure the function of the &lt;  &gt; buttons.">config.usage.historymode</item>
-		<item level="1" text="Hide mute icon" description="If volume muted, hide mute icon or mute information after few seconds.">config.av.volume_hide_mute</item>
 		<item level="0" text="Channel +/- button mode" description="Select what you want the Channel +/- button to activate:">config.usage.channelbutton_mode</item>
 		<item level="0" text="Up/Down button mode" description="Select what you want the Up/Down button to activate:">config.usage.updownbutton_mode</item>
-		<item level="1" text="Enable VOD skip buttons" description="This option allows you to choose to use the left/right buttons to change channels, or enable them for seeking VOD content.">config.seek.vod_buttons</item>
 		<item level="2" text="Skip jumping to live TV while timeshifting with plugins" description="If set to 'yes', allows you to use timeshift with alternative audio plugins.">config.usage.timeshift_skipreturntolive</item>
 		<item level="2" text="Quit Movie Player with EXIT button" description="When enabled, it is possible to leave the Movie Player with exit.">config.usage.leave_movieplayer_onExit</item>
 		</setup>
@@ -167,7 +164,7 @@
 		<item level="2" text="Enable Netmed EPG" description="Use Netmed EPG information when it is available.">config.epg.netmed</item>
 		<item level="2" text="Enable Virgin EPG" description="Use Virgin EPG information when it is available.">config.epg.virgin</item>
 		<item level="2" text="Enable OpenTV EPG" description="Use OpenTV EPG information when it is available. For reading OpenTV EPG data tuning to a dedicated transponder is required">config.epg.opentv</item>
-		<item level="2" text="Maintain old EPG data for" description="Configure for how many minutes finished events should remain visible in the EPG. Useful when you need information about an event which has just finished, or has been delayed.">config.epg.histminutes</item>
+		<item level="2" text="Maintain old EPG data for" description="Configure how long finished events should remain visible in the EPG. Useful when you need information about an event which has just finished, or has been delayed (or for plugins that support catchup).">config.epg.histminutes</item>
 		<item level="2" text="Include EIT in http streams" description="When enabled, EIT data will be included in http streams. This allows a client receiver to show EPG.">config.streaming.stream_eit</item>
 		<item level="2" text="Include AIT in http streams" description="When enabled, AIT data will be included in http streams. This allows a client receiver to use HbbTV.">config.streaming.stream_ait</item>
 		<item level="2" text="Country for EPG event rating information" description="Choose a country scheme for decoding rating information in EPG events.">config.misc.epgratingcountry</item>
@@ -179,10 +176,6 @@
 		</if>
 	</setup>
 	<setup key="subtitlesetup" title="Subtitles">
-		<item level="2" text="AI-Powered translation enabled" description="Enable AI-Powered translation for all teletext and DVB subtitles." requires="AiSubtitles"> config.subtitles.ai_enabled</item>
-		<item level="2" text="AI-Powered translation language" description="Configure the AI-Powered translation language." requires="AiSubtitles">config.subtitles.ai_translate_to</item>
-		<item level="2" text="AI-Powered translation subscription code" description="Enter your subscription code, the unified code for trail is 15." requires="AiSubtitles">config.subtitles.ai_subscription_code</item>
-		<item level="2" text="AI-Powered translation color" description="Configure the color of the AI-Powered translations." requires="AiSubtitles">config.subtitles.ai_subtitle_colors</item>
 		<item level="2" text="Teletext subtitle color" description="Configure the color of the teletext subtitles.">config.subtitles.ttx_subtitle_colors</item>
 		<item level="2" text="Use original teletext position" description="When enabled, teletext subtitles will be displayed at their original position.">config.subtitles.ttx_subtitle_original_position</item>
 		<item level="2" text="Rewrap subtitles" description="When enabled, reformat subtitles to match the width of the screen.">config.subtitles.subtitle_rewrap</item>
@@ -255,7 +248,6 @@
 		<item level="2" text="Custom skip time for '7'/'9' buttons" description="Configure the skip time interval for the 7 and 9 buttons.">config.seek.selfdefined_79</item>
 		<item level="2" text="Quit Movie Player with EXIT button" description="When enabled, it is possible to leave the Movie Player with exit.">config.usage.leave_movieplayer_onExit</item>
 		<item level="2" text="Behavior of 'pause' when paused" description="Configure the behavior of the 'pause' key when movie playback is already paused.">config.seek.on_pause</item>
-		<item level="2" text="Enable VOD skip buttons" description="This option allows you to choose to use the left/right buttons to change channels, or enable them for seeking VOD content.">config.seek.vod_buttons</item>
 		<item level="2" text="Seekbar activation" description="Select seekbar to be activated by arrow L/R (long) or &lt;&lt; &gt;&gt; (long).">config.seek.baractivation</item>
 		<item level="2" text="Seekbar sensibility" description="Set the jump-size of the seekbar.">config.seek.sensibility</item>
 		<item level="2" text="Fast forward speeds" description="Configure the possible fast forward speeds.">config.seek.speeds_forward</item>

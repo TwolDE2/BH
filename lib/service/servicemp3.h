@@ -115,7 +115,7 @@ public:
 typedef struct _GstElement GstElement;
 
 typedef enum { atUnknown, atMPEG, atMP3, atAC3, atDTS, atAAC, atPCM, atOGG, atFLAC, atWMA, atDRA } audiotype_t;
-typedef enum { stUnknown, stPlainText, stSSA, stASS, stSRT, stVOB, stPGS } subtype_t;
+typedef enum { stUnknown, stPlainText, stSSA, stASS, stSRT, stVOB, stPGS, stDVB } subtype_t;
 typedef enum { ctNone, ctMPEGTS, ctMPEGPS, ctMKV, ctAVI, ctMP4, ctVCD, ctCDA, ctASF, ctOGG, ctWEBM, ctDRA} containertype_t;
 
 class eServiceMP3: public iPlayableService, public iPauseableService,
@@ -294,6 +294,8 @@ private:
 	int selectAudioStream(int i);
 	std::vector<audioStream> m_audioStreams;
 	std::vector<subtitleStream> m_subtitleStreams;
+	std::vector<audioStream> m_audioStreams_temp;
+	std::vector<subtitleStream> m_subtitleStreams_temp;
 	iSubtitleUser *m_subtitle_widget;
 	gdouble m_currentTrickRatio;
 	friend class eServiceFactoryMP3;

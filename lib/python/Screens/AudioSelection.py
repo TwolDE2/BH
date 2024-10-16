@@ -31,6 +31,12 @@ selectionpng = LoadPixmap(cached=True, path=resolveFilename(SCOPE_CURRENT_SKIN, 
 
 
 class AudioSelection(ConfigListScreen, Screen):
+	TYPE_ALL = 0
+	TYPE_AUDIO = 1
+	TYPE_SUBTITLE = 2
+	hooks = []
+	audioHooks = []
+	subtitleHooks = []
 	def __init__(self, session, infobar=None, page=PAGE_AUDIO):
 		Screen.__init__(self, session)
 		self["streams"] = List([], enableWrapAround=True)
@@ -82,6 +88,20 @@ class AudioSelection(ConfigListScreen, Screen):
 		self.settings.menupage = ConfigSelection(choices=choicelist, default=page)
 		self.onLayoutFinish.append(self.__layoutFinished)
 
+	def runHooks(self, type):
+		if type == self.TYPE_ALL:
+			for hook in AudioSelection.hooks:
+				if callable(hook):
+					hook()
+		elif type == self.TYPE_AUDIO:
+			for hook in AudioSelection.audioHooks:
+				if callable(hook):
+					hook()
+		elif type == self.TYPE_SUBTITLE:
+			for hook in AudioSelection.subtitleHooks:
+				if callable(hook):
+					hook()
+
 	def __layoutFinished(self):
 		self["config"].instance.setSelectionEnable(False)
 		self.focus = FOCUS_STREAMS
@@ -117,6 +137,8 @@ class AudioSelection(ConfigListScreen, Screen):
 			service = self.session.nav.getCurrentService()
 			self.audioTracks = audio = service and service.audioTracks()
 			n = audio and audio.getNumberOfTracks() or 0
+			if self.subtitlelist:
+				conflist.append(getConfigListEntry(_("To subtitle selection"), self.settings.menupage))
 			if SystemInfo["CanDownmixAC3"]:
 				choice_list = [
 					("downmix", _("Downmix")),
@@ -221,9 +243,6 @@ class AudioSelection(ConfigListScreen, Screen):
 				self.settings.pcm_multichannel = ConfigOnOff(default=config.av.pcm_multichannel.value)
 				self.settings.pcm_multichannel.addNotifier(self.changePCMMultichannel, initial_call=False)
 				conflist.append(getConfigListEntry(_("PCM multichannel"), self.settings.pcm_multichannel, None))
-
-			if self.subtitlelist:
-				conflist.append(getConfigListEntry(_("To subtitle selection"), self.settings.menupage))
 
 			if SystemInfo["CanBTAudio"]:
 				choice_list = [("off", _("Off")), ("on", _("On"))]
@@ -494,12 +513,10 @@ class AudioSelection(ConfigListScreen, Screen):
 			self["streams"].setIndex(0)
 
 	def keyRight(self, config=False):
-		global conflist
-		print("[keyRight] config=%s self.focus=%s" % (config, self.focus))
 		if config or self.focus == FOCUS_CONFIG:
 			index = self["config"].getCurrentIndex()
 			if self.settings.menupage.value == PAGE_AUDIO:
-				if self.subtitlelist and self["config"].getCurrent()[1] is self.settings.menupage:  # Subtitle selection screen
+				if self.subtitlelist and index == 0:  # Subtitle selection screen
 					self.keyAudioSubtitle()
 					self.__updatedInfo()
 				elif self["config"].getCurrent()[2]:
@@ -591,23 +608,25 @@ class AudioSelection(ConfigListScreen, Screen):
 	def keyOk(self):
 		if self.focus == FOCUS_STREAMS and self["streams"].list:
 			cur = self["streams"].getCurrent()
-			service = self.session.nav.getCurrentService()  # noqa: F841
 			ref = self.session.nav.getCurrentServiceRef()
 			ref = ref and eServiceReference(ref)
 			if self.settings.menupage.value == PAGE_AUDIO and cur[0] is not None:
 				self.changeAudio(cur[0])
 				self.__updatedInfo()
+				self.runHooks(self.TYPE_AUDIO)
 			if self.settings.menupage.value == PAGE_SUBTITLES and cur[0] is not None:
 				if self.infobar.selected_subtitle and self.infobar.selected_subtitle[:4] == cur[0][:4]:
 					self.enableSubtitle(None)
 					selectedidx = self["streams"].getIndex()
 					self.__updatedInfo()
 					self["streams"].setIndex(selectedidx)
+					self.runHooks(self.TYPE_SUBTITLE)
 				else:
 					self.enableSubtitle(cur[0][:5])
 					self.__updatedInfo()
 				if isIPTV(ref):
 					self.saveAVDict()
+			self.runHooks(self.TYPE_ALL)
 			self.close(0)
 		elif self.focus == FOCUS_CONFIG:
 			self.keyRight()

@@ -172,6 +172,11 @@ std::string eServiceReference::toString() const
 		ret += ':';
 		ret += encode(name);
 	}
+	if (!prov.empty()) {
+		std::string provPart = "•" + prov;
+		if (ret.find(provPart) == std::string::npos)
+			ret += provPart;
+	}
 	return ret;
 }
 

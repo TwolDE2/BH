@@ -1484,29 +1484,29 @@ class InfoBarChannelSelection:
 			self.servicelist.historyZap(+1)
 
 	def switchChannelUp(self, servicelist=None):
-#		if not self.secondInfoBarScreen.shown:
-			servicelist = servicelist or self.servicelist
-			self.keyHide()
-			if not config.usage.show_bouquetalways.value:
-				if "keep" not in config.usage.servicelist_cursor_behavior.value:
-					servicelist.moveUp()
-			else:
-				servicelist.showFavourites()
-			self.session.execDialog(servicelist)
+		# if not self.secondInfoBarScreen.shown:
+		servicelist = servicelist or self.servicelist
+		self.keyHide()
+		if not config.usage.show_bouquetalways.value:
+			if "keep" not in config.usage.servicelist_cursor_behavior.value:
+				servicelist.moveUp()
+		else:
+			servicelist.showFavourites()
+		self.session.execDialog(servicelist)
 
 	def switchChannelUpLong(self):
 		self.switchChannelUp(self.servicelist2 if SystemInfo.get("NumVideoDecoders", 1) > 1 else None)
 
 	def switchChannelDown(self, servicelist=None):
-#		if not self.secondInfoBarScreen.shown:
-			servicelist = servicelist or self.servicelist
-			self.keyHide()
-			if not config.usage.show_bouquetalways.value:
-				if "keep" not in config.usage.servicelist_cursor_behavior.value:
-					servicelist.moveDown()
-			else:
-				servicelist.showFavourites()
-			self.session.execDialog(servicelist)
+		# if not self.secondInfoBarScreen.shown:
+		servicelist = servicelist or self.servicelist
+		self.keyHide()
+		if not config.usage.show_bouquetalways.value:
+			if "keep" not in config.usage.servicelist_cursor_behavior.value:
+				servicelist.moveDown()
+		else:
+			servicelist.showFavourites()
+		self.session.execDialog(servicelist)
 
 	def switchChannelDownLong(self):
 		self.switchChannelDown(self.servicelist2 if SystemInfo.get("NumVideoDecoders", 1) > 1 else None)
@@ -2383,14 +2383,9 @@ class InfoBarSeek:
 		return seek
 
 	def isSeekable(self):
-		if config.seek.vod_buttons.value:
-			if self.getSeek() is None:
-				return False
-			return True
-		else:
-			if self.getSeek() is None or (isStandardInfoBar(self) and not self.timeshiftEnabled()):
-				return False
-			return True
+		if self.getSeek() is None or (isStandardInfoBar(self) and not self.timeshiftEnabled()):
+			return False
+		return True
 
 	def __seekableStatusChanged(self):
 		if isStandardInfoBar(self) and self.timeshiftEnabled():

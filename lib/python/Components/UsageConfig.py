@@ -3,7 +3,7 @@ import locale
 import os
 import skin
 
-from enigma import eDVBDB, eEPGCache, setTunerTypePriorityOrder, setPreferredTuner, setSpinnerOnOff, setEnableTtCachingOnOff, eEnv, Misc_Options, eBackgroundFileEraser, eServiceEvent, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_WRAP, eAISettings
+from enigma import eDVBDB, eEPGCache, setTunerTypePriorityOrder, setPreferredTuner, setSpinnerOnOff, setEnableTtCachingOnOff, eEnv, Misc_Options, eBackgroundFileEraser, eServiceEvent, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, RT_VALIGN_CENTER, RT_WRAP
 
 from Components.Harddisk import harddiskmanager
 from Components.config import config, ConfigBoolean, ConfigDictionarySet, ConfigDirectory, ConfigInteger, ConfigIP, ConfigLocations, ConfigNumber, ConfigPassword, ConfigSelection, ConfigSelectionNumber, ConfigSet, ConfigSlider, ConfigSubsection, ConfigText, ConfigYesNo, NoSave
@@ -36,7 +36,6 @@ def InitUsageConfig():
 		config.misc.remotecontrol_text_support = ConfigYesNo(default=False)
 
 	config.misc.usegstplaybin3 = ConfigYesNo(default=False)
-	config.misc.use_nonblock_io = ConfigYesNo(default=False)
 
 	config.usage = ConfigSubsection()
 	config.usage.subnetwork = ConfigYesNo(default=True)
@@ -59,11 +58,11 @@ def InitUsageConfig():
 	config.usage.hide_number_markers = ConfigYesNo(default=True)
 	config.usage.hide_number_markers.addNotifier(refreshServiceList, initial_call=False, immediate_feedback=False)
 
-	config.usage.servicetype_icon_mode = ConfigSelection(default="1", choices=[("0", _("No")), ("1", _("Left from servicename (only available in single line mode)")), ("2", _("Right from servicename"))])
+	config.usage.servicetype_icon_mode = ConfigSelection(default="1", choices=[("0", _("None")), ("1", _("Left from servicename")), ("2", _("Right from servicename"))])
 	config.usage.servicetype_icon_mode.addNotifier(refreshServiceList, initial_call=False, immediate_feedback=False)
-	config.usage.crypto_icon_mode = ConfigSelection(default="1", choices=[("0", _("No")), ("1", _("Left from servicename (only available in single line mode)")), ("2", _("Right from servicename"))])
+	config.usage.crypto_icon_mode = ConfigSelection(default="1", choices=[("0", _("None")), ("1", _("Left from servicename")), ("2", _("Right from servicename"))])
 	config.usage.crypto_icon_mode.addNotifier(refreshServiceList, initial_call=False, immediate_feedback=False)
-	config.usage.record_indicator_mode = ConfigSelection(default="3", choices=[("0", _("No")), ("1", _("Left from servicename (only available in single line mode)")), ("2", _("Right from servicename")), ("3", _("Red colored"))])
+	config.usage.record_indicator_mode = ConfigSelection(default="3", choices=[("0", _("None")), ("1", _("Left from servicename")), ("2", _("Right from servicename")), ("3", _("Red colored"))])
 	config.usage.record_indicator_mode.addNotifier(refreshServiceList, initial_call=False, immediate_feedback=False)
 
 	choicelist = [("-1", _("Disable"))]
@@ -329,9 +328,9 @@ def InitUsageConfig():
 	config.usage.show_bouquetalways = ConfigYesNo(default=False)
 	config.usage.show_event_progress_in_servicelist = ConfigSelection(default='barleft', choices=[
 		('barleft', _("Progress bar left")),
-		('barright', _("Progress bar right (only available in single line mode)")),
+		('barright', _("Progress bar right")),
 		('percleft', _("Percentage left")),
-		('percright', _("Percentage right (only available in single line mode)")),
+		('percright', _("Percentage right")),
 		('no', _("No"))])
 	config.usage.show_channel_numbers_in_servicelist = ConfigYesNo(default=True)
 	config.usage.show_channel_jump_in_servicelist = ConfigSelection(default="alpha", choices=[
@@ -780,13 +779,20 @@ def InitUsageConfig():
 	config.epg.virgin.addNotifier(EpgSettingsChanged)
 	config.epg.opentv.addNotifier(EpgSettingsChanged)
 
-	config.epg.histminutes = ConfigSelectionNumber(min=0, max=720, stepwidth=15, default=0, wraparound=True)
 	config.epg.joinAbbreviatedEventNames = ConfigYesNo(default=True)
 	config.epg.eventNamePrefixes = ConfigText(default="")
 	config.epg.eventNamePrefixMode = ConfigSelection(choices=[(0, _("Off")), (1, _("Remove")), (2, _("Move to description"))])
 
+	def wdhm(number):
+		units = ((_("week"), _("day"), _("hour"), _("minute")), (_("weeks"), _("days"), _("hours"), _("minutes")), (7 * 24 * 60, 24 * 60, 60, 1))
+		for i, d in enumerate(units[2]):
+			if unit := int(number / d):
+				return "%s %s" % (unit, units[0 if unit == 1 else 1][i])
+		return _("0 minutes")
+	choices = [(i, wdhm(i)) for i in [i * 15 for i in range(0, 4)] + [i * 60 for i in range(1, 9)] + [i * 120 for i in range(5, 12)] + [i * 24 * 60 for i in range(1, 8)]]
+	config.epg.histminutes = ConfigSelection(default=0, choices=choices)
 	def EpgHistorySecondsChanged(configElement):
-		eEPGCache.getInstance().setEpgHistorySeconds(config.epg.histminutes.value * 60)
+		eEPGCache.getInstance().setEpgHistorySeconds(int(configElement.value) * 60)
 	config.epg.histminutes.addNotifier(EpgHistorySecondsChanged)
 
 	config.epg.cacheloadsched = ConfigYesNo(default=False)
@@ -899,8 +905,6 @@ def InitUsageConfig():
 	config.seek.selfdefined_46 = ConfigSelectionNumber(min=1, max=240, stepwidth=1, default=60, wraparound=True)
 	config.seek.selfdefined_79 = ConfigSelectionNumber(min=1, max=480, stepwidth=1, default=300, wraparound=True)
 
-	config.seek.vod_buttons = ConfigYesNo(default=False)
-
 	config.seek.speeds_forward = ConfigSet(default=[2, 4, 8, 16, 32, 64, 128], choices=[2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128])
 	config.seek.speeds_backward = ConfigSet(default=[2, 4, 8, 16, 32, 64, 128], choices=[1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128])
 	config.seek.speeds_slowmotion = ConfigSet(default=[2, 4, 8], choices=[2, 4, 6, 8, 12, 16, 25])
@@ -998,34 +1002,6 @@ def InitUsageConfig():
 	config.usage.historymode = ConfigSelection(default="1", choices=[("0", _("Just zap")), ("1", _("Show menu"))])
 
 	config.subtitles = ConfigSubsection()
-	# AI Start
-	def setAiEnabled(configElement):
-		eAISettings.setAiEnabled(configElement.value)
-
-	config.subtitles.ai_enabled = ConfigYesNo(default=False)
-	config.subtitles.ai_enabled.addNotifier(setAiEnabled)
-
-	def setAiSubscriptionCode(configElement):
-		eAISettings.setAiSubscriptionCode(str(configElement.value))
-
-	config.subtitles.ai_subscription_code = ConfigNumber(default=15)
-	config.subtitles.ai_subscription_code.addNotifier(setAiSubscriptionCode)
-
-	def setAiSubtitleColors(configElement):
-		eAISettings.setAiSubtitleColors(configElement.value)
-
-	config.subtitles.ai_subtitle_colors = ConfigSelection(default=1, choices=[
-		(1, _("White")),
-		(2, _("Yellow"))
-	])
-	config.subtitles.ai_subtitle_colors.addNotifier(setAiSubtitleColors)
-
-	def setAiTranslateTo(configElement):
-		eAISettings.setAiTranslateTo(configElement.value)
-
-	config.subtitles.ai_translate_to = ConfigSelection(default="en", choices=[("sq", _("Albanian")),("ar", _("Arabic")),("hy", _("Armenian")),("az", _("Azerbaijani")),("be", _("Belarusian")),("bs", _("Bosnian")),("bg", _("Bulgarian")),("ca", _("Catalan")),("zh-CN", _("Chinese (Simplified)")),("hr", _("Croatian")),("cs", _("Czech")),("da", _("Danish")),("nl", _("Dutch")),("en", _("English")),("et", _("Estonian")),("fi", _("Finnish")),("fr", _("French")),("ka", _("Georgian")),("de", _("German")),("el", _("Greek")),("hu", _("Hungarian")),("it", _("Italian")),("ckb", _("Kurdish (Sorani)")),("lv", _("Latvian")),("lt", _("Lithuanian")),("mk", _("Macedonian")),("no", _("Norwegian")),("fa", _("Persian")),("pl", _("Polish")),("pt", _("Portuguese (Portugal, Brazil)")),("ro", _("Romanian")),("ru", _("Russian")),("sr", _("Serbian")),("sk", _("Slovak")),("sl", _("Slovenian")),("es", _("Spanish")),("sv", _("Swedish")),("tr", _("Turkish")),("uk", _("Ukrainian")),("ur", _("Urdu"))])
-	config.subtitles.ai_translate_to.addNotifier(setAiTranslateTo)
-	# AI End
 	config.subtitles.ttx_subtitle_colors = ConfigSelection(default="1", choices=[
 		("0", _("original")),
 		("1", _("white")),
