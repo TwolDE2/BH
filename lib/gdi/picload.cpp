@@ -422,7 +422,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 
 	if ((bit_depth <= 8) && (color_type == PNG_COLOR_TYPE_GRAY || color_type & PNG_COLOR_MASK_PALETTE || color_type == PNG_COLOR_TYPE_RGBA))
 	{
-		eDebug("[ePicLoad]1 bit_depth <= 8 && color_type == PNG_COLOR_TYPE_GRAY || color_type & PNG_COLOR_MASK_PALETTE");
+		eDebug("[ePicLoad]1 bit depth %d color type %d ", bit_depth, color_type);
 		if (bit_depth < 8)
 			png_set_packing(png_ptr);
 
@@ -469,11 +469,14 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 				for (unsigned int i = 0; i < num_palette; i++)
 					filepara->palette[i].a = 255 - trans[i];
 			}
+			filepara->pic_buffer = pic_buffer;
+			filepara->bits = 8;
+			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		}
 		else
 		{
 			eDebug("[ePicLoad] else NOT png_get_valid");
-			int c_cnt = 1 << bit_depth;
+/*			int c_cnt = 1 << bit_depth;
 			int c_step = (256 - 1) / (c_cnt - 1);
 			filepara->palette_size = c_cnt;
 			filepara->palette = new gRGB[c_cnt];
@@ -485,9 +488,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 				filepara->palette[i].b = i * c_step;
 			}
 		}
-		filepara->pic_buffer = pic_buffer;
-		filepara->bits = 8;
-		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+*/
 	}
 	else
 	{
