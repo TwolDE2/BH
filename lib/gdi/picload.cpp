@@ -433,17 +433,18 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 			return;
 		}
-
+		eDebug("[ePicLoad]1 pre int");
 		int number_passes = png_set_interlace_handling(png_ptr);
 		png_read_update_info(png_ptr, info_ptr);
-
+		eDebug("[ePicLoad]2 post int %d", number_passes);
 		for (int pass = 0; pass < number_passes; pass++)
 		{
 			fbptr = (png_byte *)pic_buffer;
 			for (unsigned int i = 0; i < height; i++, fbptr += width)
 				png_read_row(png_ptr, fbptr, NULL);
+				eDebug("[ePicLoad]3 png read row");				
 		}
-
+		eDebug("[ePicLoad]4 post int %d", number_passes);
 		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_PLTE))
 		{
 			eDebug("[ePicLoad] png_get_valid");
