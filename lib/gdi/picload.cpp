@@ -487,8 +487,8 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 				filepara->palette[i].g = i * c_step;
 				filepara->palette[i].b = i * c_step;
 			}
-		}
 */
+		}
 	}
 	else
 	{
