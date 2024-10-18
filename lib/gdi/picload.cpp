@@ -368,7 +368,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 {
 	png_uint_32 width, height;
 	unsigned int i;
-	int bit_depth, color_type, color_type_orig, interlace_type;
+	int bit_depth, color_type, color_type_original, interlace_type;
 	png_byte *fbptr;
 	CFile fh(filepara->file, "rb");
 	if (!fh)
