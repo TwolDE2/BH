@@ -459,7 +459,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 			{
 				eDebug("[ePicLoad][png_load] png_get_valid");
 				png_color *palette;
-				int num_palette;
+				unsigned int num_palette;
 				png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
 				filepara->palette_size = num_palette;
 				if (num_palette)
@@ -484,8 +484,8 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 			else
 			{
 				eDebug("[ePicLoad][png_load] else NOT png_get_valid");
-				int c_cnt = 1 << bit_depth;
-				int c_step = (256 - 1) / (c_cnt - 1);
+				unsigned int c_cnt = 1 << bit_depth;
+				unsigned int c_step = (256 - 1) / (c_cnt - 1);
 				filepara->palette_size = c_cnt;
 				filepara->palette = new gRGB[c_cnt];
 				for (unsigned int i = 0; i < c_cnt; i++)
