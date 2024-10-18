@@ -459,13 +459,13 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 			{
 				eDebug("[ePicLoad][png_load] png_get_valid");
 				png_color *palette;
-				unsigned int num_palette;
+				int num_palette;
 				png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
 				filepara->palette_size = num_palette;
 				if (num_palette)
 					filepara->palette = new gRGB[num_palette];
 
-				for (unsigned int i = 0; i < num_palette; i++)
+				for (int i = 0; i < num_palette; i++)
 				{
 					filepara->palette[i].a = 0;
 					filepara->palette[i].r = palette[i].red;
@@ -477,7 +477,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 				{
 					png_byte *trans;
 					png_get_tRNS(png_ptr, info_ptr, &trans, &num_palette, 0);
-					for (unsigned int i = 0; i < num_palette; i++)
+					for (int i = 0; i < num_palette; i++)
 						filepara->palette[i].a = 255 - trans[i];
 				}
 			}
