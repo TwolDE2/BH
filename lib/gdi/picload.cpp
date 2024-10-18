@@ -400,7 +400,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 	png_read_info(png_ptr, info_ptr);
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type_original, &interlace_type, NULL, NULL);
 	eDebug("[ePicLoad][png_load] width %d height %d bit depth %d colortype %d interface type %d", width, height, bit_depth, color_type, interlace_type);
-	color_type = color_type_original
+	color_type = color_type_original;
 	int pixel_cnt = width * height;
 	filepara->ox = width;
 	filepara->oy = height;
