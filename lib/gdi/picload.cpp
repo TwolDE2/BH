@@ -7,6 +7,8 @@
 #include <lib/base/wrappers.h>
 #include <lib/gdi/picexif.h>
 #include <lib/gdi/picload.h>
+#include <stdexcept>
+#include <exception>
 
 extern "C" {
 #define HAVE_BOOLEAN
@@ -393,8 +395,8 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 	png_read_info(png_ptr, info_ptr);
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
 	eDebug("[ePicLoad][png_load] width %d height %d bit depth %d colortype %d interface type %d", width, height, bit_depth, color_type, interlace_type);
+	eDebug("[ePicLoad][png_load] PNG_COLOR_TYPE_GRAY %d PNG_COLOR_TYPE_GRAY_ALPHA %d PNG_COLOR_TYPE_PALETTE %d PNG_COLOR_TYPE_RGB %d PNG_COLOR_TYPE_RGB_ALPHA %d", PNG_COLOR_TYPE_GRAY, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB, PNG_COLOR_TYPE_RGB_ALPHA);
 	int pixel_cnt = width * height;
-
 	filepara->ox = width;
 	filepara->oy = height;
 
@@ -438,13 +440,21 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 		int number_passes = png_set_interlace_handling(png_ptr);
 		png_read_update_info(png_ptr, info_ptr);
 		eDebug("[ePicLoad][png_load]2 post int %d", number_passes);
-		for (int pass = 0; pass < number_passes; pass++)
+		try
 		{
-			fbptr = (png_byte *)pic_buffer;
-			for (unsigned int i = 0; i < height; i++, fbptr += width)
-				png_read_row(png_ptr, fbptr, NULL);
-				eDebug("[ePicLoad]3 png read row");				
+			for (int pass = 0; pass < number_passes; pass++)
+			{
+				fbptr = (png_byte *)pic_buffer;
+				for (unsigned int i = 0; i < height; i++, fbptr += width)
+					png_read_row(png_ptr, fbptr, NULL);
+					eDebug("[ePicLoad][png_load3 png read row");				
+			}
 		}
+		catch(std::exception ex)
+		{   
+			eDebug("[ePicLoad][png_load3 png read row crash")
+			break;
+		} 
 		eDebug("[ePicLoad][png_load]4 post int %d", number_passes);
 		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_PLTE))
 		{
@@ -1169,7 +1179,6 @@ void ePicLoad::gotMessage(const Message &msg)
 		case Message::quit: // called from decode thread
 			eDebug("[ePicLoad] decode thread ... got quit msg");
 			quit(0);
-			break;
 		case Message::decode_finished: // called from main thread
 			eDebug("[ePicLoad] decode finished... %s", m_filepara->file);
 			if((m_filepara != NULL) && (m_filepara->callback))
