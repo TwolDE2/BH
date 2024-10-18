@@ -452,7 +452,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 		}
 		catch(std::exception ex)
 		{   
-			eDebug("[ePicLoad][png_load3 png read row crash")
+			eDebug("[ePicLoad][png_load3 png read row crash");
 			break;
 		} 
 		eDebug("[ePicLoad][png_load]4 post int %d", number_passes);
