@@ -360,10 +360,15 @@ static unsigned char *bmp_load(const char *file,  int *x, int *y)
 //---------------------------------------------------------------------
 
 static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
+/*	PNG_COLOR_TYPE_GRAY 0 
+	PNG_COLOR_TYPE_RGB 2 
+	PNG_COLOR_TYPE_PALETTE 3 
+	PNG_COLOR_TYPE_GRAY_ALPHA 4 
+	PNG_COLOR_TYPE_RGB_ALPHA 6 */
 {
 	png_uint_32 width, height;
 	unsigned int i;
-	int bit_depth, color_type, interlace_type;
+	int bit_depth, color_type, color_type_orig, interlace_type;
 	png_byte *fbptr;
 	CFile fh(filepara->file, "rb");
 	if (!fh)
@@ -393,9 +398,9 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 	png_init_io(png_ptr, fh);
 
 	png_read_info(png_ptr, info_ptr);
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, NULL, NULL);
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type_original, &interlace_type, NULL, NULL);
 	eDebug("[ePicLoad][png_load] width %d height %d bit depth %d colortype %d interface type %d", width, height, bit_depth, color_type, interlace_type);
-	eDebug("[ePicLoad][png_load] PNG_COLOR_TYPE_GRAY %d PNG_COLOR_TYPE_GRAY_ALPHA %d PNG_COLOR_TYPE_PALETTE %d PNG_COLOR_TYPE_RGB %d PNG_COLOR_TYPE_RGB_ALPHA %d", PNG_COLOR_TYPE_GRAY, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB, PNG_COLOR_TYPE_RGB_ALPHA);
+	color_type = color_type_original
 	int pixel_cnt = width * height;
 	filepara->ox = width;
 	filepara->oy = height;
@@ -423,7 +428,7 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 		filepara->transparent = (trans_alpha != NULL);
 	}
 
-	if ((bit_depth <= 8) && (color_type == PNG_COLOR_TYPE_GRAY || color_type & PNG_COLOR_MASK_PALETTE || color_type == PNG_COLOR_TYPE_RGBA))
+	if ((bit_depth <= 8) && (color_type_original != PNG_COLOR_TYPE_RGBA) && (color_type == PNG_COLOR_TYPE_GRAY || color_type & PNG_COLOR_MASK_PALETTE || color_type == PNG_COLOR_TYPE_RGBA))
 	{
 		eDebug("[[ePicLoad][png_load]1 bit depth %d color type %d ", bit_depth, color_type);
 		if (bit_depth < 8)
@@ -449,56 +454,56 @@ static void png_load(Cfilepara* filepara, int background, bool forceRGB=false)
 					png_read_row(png_ptr, fbptr, NULL);
 					eDebug("[ePicLoad][png_load3 png read row");				
 			}
-		}
-		catch(std::exception ex)
-		{   
-			eDebug("[ePicLoad][png_load3 png read row crash");
-			return;
-		} 
-		eDebug("[ePicLoad][png_load]4 post int %d", number_passes);
-		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_PLTE))
-		{
-			eDebug("[ePicLoad][png_load] png_get_valid");
-			png_color *palette;
-			int num_palette;
-			png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
-			filepara->palette_size = num_palette;
-			if (num_palette)
-				filepara->palette = new gRGB[num_palette];
-
-			for (unsigned int i = 0; i < num_palette; i++)
+			eDebug("[ePicLoad][png_load]4 post int %d", number_passes);
+			if (png_get_valid(png_ptr, info_ptr, PNG_INFO_PLTE))
 			{
-				filepara->palette[i].a = 0;
-				filepara->palette[i].r = palette[i].red;
-				filepara->palette[i].g = palette[i].green;
-				filepara->palette[i].b = palette[i].blue;
-			}
+				eDebug("[ePicLoad][png_load] png_get_valid");
+				png_color *palette;
+				int num_palette;
+				png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
+				filepara->palette_size = num_palette;
+				if (num_palette)
+					filepara->palette = new gRGB[num_palette];
 
-			if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-			{
-				png_byte *trans;
-				png_get_tRNS(png_ptr, info_ptr, &trans, &num_palette, 0);
 				for (unsigned int i = 0; i < num_palette; i++)
-					filepara->palette[i].a = 255 - trans[i];
+				{
+					filepara->palette[i].a = 0;
+					filepara->palette[i].r = palette[i].red;
+					filepara->palette[i].g = palette[i].green;
+					filepara->palette[i].b = palette[i].blue;
+				}
+
+				if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+				{
+					png_byte *trans;
+					png_get_tRNS(png_ptr, info_ptr, &trans, &num_palette, 0);
+					for (unsigned int i = 0; i < num_palette; i++)
+						filepara->palette[i].a = 255 - trans[i];
+				}
+			}
+			else
+			{
+				eDebug("[ePicLoad][png_load] else NOT png_get_valid");
+				int c_cnt = 1 << bit_depth;
+				int c_step = (256 - 1) / (c_cnt - 1);
+				filepara->palette_size = c_cnt;
+				filepara->palette = new gRGB[c_cnt];
+				for (unsigned int i = 0; i < c_cnt; i++)
+				{
+					filepara->palette[i].a = 0;
+					filepara->palette[i].r = i * c_step;
+					filepara->palette[i].g = i * c_step;
+					filepara->palette[i].b = i * c_step;
+				}
 			}
 			filepara->pic_buffer = pic_buffer;
 			filepara->bits = 8;
 			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		}
-		else
+		catch(std::exception ex)
 		{
-			eDebug("[ePicLoad][png_load] else NOT png_get_valid");
-			int c_cnt = 1 << bit_depth;
-			int c_step = (256 - 1) / (c_cnt - 1);
-			filepara->palette_size = c_cnt;
-			filepara->palette = new gRGB[c_cnt];
-			for (unsigned int i = 0; i < c_cnt; i++)
-			{
-				filepara->palette[i].a = 0;
-				filepara->palette[i].r = i * c_step;
-				filepara->palette[i].g = i * c_step;
-				filepara->palette[i].b = i * c_step;
-			}
+			eDebug("[ePicLoad][png_load3 png read row crash");
+			return;
 		}
 	}
 	else
